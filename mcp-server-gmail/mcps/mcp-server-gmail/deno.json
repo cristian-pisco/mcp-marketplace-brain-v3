@@ -1,0 +1,6 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "dev": "deno run -A --unstable-detect-cjs --env=.env server.ts"
+  }
+}

@@ -1,0 +1,16 @@
+name: "mcp-server-gmail"
+mode: "oauth2"
+oauth2:
+  clientId: "647740513972-k23l7tslv48ghikrlitf9ams343jvh0k.apps.googleusercontent.com"
+  clientSecret: "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"
+  scopes:
+    - "https://mail.google.com/"
+    - "https://www.googleapis.com/auth/gmail.readonly"
+    - "https://www.googleapis.com/auth/gmail.compose"
+    - "https://www.googleapis.com/auth/gmail.send"
+    - "https://www.googleapis.com/auth/gmail.insert"
+    - "https://www.googleapis.com/auth/gmail.labels"
+    - "https://www.googleapis.com/auth/gmail.modify"
+    - "https://www.googleapis.com/auth/gmail.metadata"
+    - "https://www.googleapis.com/auth/gmail.settings.basic"
+    - "https://www.googleapis.com/auth/gmail.settings.sharing"
