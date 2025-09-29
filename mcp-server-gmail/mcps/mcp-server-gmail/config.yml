@@ -1,8 +1,0 @@
-name: mcp-server-gmail
-description: MCP server that allows send email
-id: 50
-toolkit: gmail
-env:
-  APP_MARKETPLACE_ID: 01K63CJFHG8SAV4XBNBPQQ70Q1
-  AUTH_CONFIG_ID: 01K63CWRKJG0PBVZWYKNBHF0ZG
-deployment_id: jb0p0655qpca
