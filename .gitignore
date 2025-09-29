@@ -156,4 +156,5 @@ yalc.lock
 notas.txt
 auth_config.yml
 config.yml
+.npmrc
 # End of https://www.toptal.com/developers/gitignore/api/deno,node
