@@ -21,8 +21,13 @@ export class GmailService {
         try {
             await this.gmail.users.getProfile({ userId: 'me' });
             return true;
-        } catch (error) {
-            console.error('Gmail connection validation failed:', error);
+        } catch (error: any) {
+            // console.error('Gmail connection validation failed:', error);
+            console.log(error.message);
+            console.log(error.name);
+            console.log(error.code);
+            console.log(error.response?.status);
+            console.log(error.response?.data);
             return false;
         }
     }
@@ -32,8 +37,13 @@ export class GmailService {
             const profile = await this.gmail.users.getProfile({ userId: 'me' });
             this.userEmail = profile.data.emailAddress;
             console.log('User email:', this.userEmail);
-        } catch (error) {
-            console.error('Failed to get user email:', error);
+        } catch (error: any) {
+            // console.error('Failed to get user email:', error);
+            console.log(error.message);
+            console.log(error.name);
+            console.log(error.code);
+            console.log(error.response?.status);
+            console.log(error.response?.data);
             this.userEmail = null;
         }
     }
@@ -154,16 +164,22 @@ export class GmailService {
             }
 
             // Wait a moment after warmup
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // await new Promise(resolve => setTimeout(resolve, 500));
 
             // Perform actual search
-            const response = await this.people.people.searchContacts({
+            console.log(query);
+            let response = await this.people.people.searchContacts({
                 query,
                 pageSize: Math.min(pageSize, 30), // Max 30 as per API docs
                 readMask
             });
+            console.log('searchContacts API Response:', JSON.stringify(response, null, 2));
 
-            console.log('People API Response:', JSON.stringify(response.data, null, 2));
+            response = await this.people.people.connections.list({
+                resourceName: 'people/me',
+                personFields: 'names,emailAddresses',
+            });
+            console.log('connectionsList API Response:', JSON.stringify(response, null, 2));
 
             if (!response.data) {
                 return {
@@ -190,7 +206,12 @@ export class GmailService {
             };
 
         } catch (error: any) {
-            console.error('Error searching people:', error);
+            // console.error('Error searching people:', error);
+            console.log(error.message);
+            console.log(error.name);
+            console.log(error.code);
+            console.log(error.response?.status);
+            console.log(error.response?.data);
             return {
                 success: false,
                 error: error.message || 'Failed to search people',
