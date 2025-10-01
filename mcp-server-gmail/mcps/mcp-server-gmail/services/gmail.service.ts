@@ -1,5 +1,5 @@
 import { google } from 'npm:googleapis@160.0.0';
-import { EmailRequest, EmailResponse, GmailConfig, SearchPeopleRequest, SearchPeopleResponse, Person } from "../types/email.ts";
+import { EmailRequest, EmailResponse, GmailConfig, SearchPeopleRequest, SearchPeopleResponse, OtherContactSearchResponse } from "../types/email.ts";
 import { encodeBase64Url } from "https://deno.land/std@0.224.0/encoding/base64url.ts";
 
 export class GmailService {
@@ -15,6 +15,14 @@ export class GmailService {
 
         this.gmail = google.gmail({ version: 'v1', auth });
         this.people = google.people({ version: 'v1', auth });
+
+        // Debug: Log the structure of the people client
+        console.log('🔧 People client structure:', Object.keys(this.people));
+        console.log('🔧 People client has people property:', 'people' in this.people);
+        if (this.people.people) {
+            console.log('🔧 People.people structure:', Object.keys(this.people.people));
+            console.log('🔧 People.people has otherContacts:', 'otherContacts' in this.people.people);
+        }
     }
 
     async validateConnection(): Promise<boolean> {
@@ -28,6 +36,12 @@ export class GmailService {
             console.log(error.code);
             console.log(error.response?.status);
             console.log(error.response?.data);
+
+            // Check if it's a permissions error for contacts
+            if (error.response?.status === 403 && error.response?.data?.error?.message?.includes('contacts')) {
+                console.log('🚫 Contacts permission missing - need to reauthorize with contacts scopes');
+            }
+
             return false;
         }
     }
@@ -148,74 +162,55 @@ export class GmailService {
         }
     }
 
-    async searchPeople(searchRequest: SearchPeopleRequest): Promise<SearchPeopleResponse> {
+    async searchPeople(searchRequest: SearchPeopleRequest): Promise<SearchPeopleResponse<OtherContactSearchResponse>> {
         try {
             const { query, pageSize = 10, readMask = 'names,emailAddresses,phoneNumbers,organizations' } = searchRequest;
 
-            // Warmup cache with empty query as recommended by Google
-            try {
-                await this.people.people.searchContacts({
-                    query: '',
-                    readMask: 'names',
-                    pageSize: 1
-                });
-            } catch (warmupError) {
-                console.warn('Warmup request failed, continuing with search:', warmupError);
-            }
+            console.log(`🔍 Searching for people with query: "${query}"`);
+            console.log(`📋 Page size: ${pageSize}, Read mask: ${readMask}`);
+            console.log('🔄 No results from searchContacts, trying otherContacts.search as fallback...');
 
-            // Wait a moment after warmup
-            // await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Perform actual search
-            console.log(query);
-            let response = await this.people.people.searchContacts({
-                query,
-                pageSize: Math.min(pageSize, 30), // Max 30 as per API docs
-                readMask
+            const otherContactsResult = await this.people.otherContacts.search({
+                query: query.trim(),
+                pageSize: Math.min(pageSize, 30),
+                readMask: 'names,emailAddresses,phoneNumbers,metadata'
             });
-            console.log('searchContacts API Response:', JSON.stringify(response, null, 2));
 
-            response = await this.people.people.connections.list({
-                resourceName: 'people/me',
-                personFields: 'names,emailAddresses',
-            });
-            console.log('connectionsList API Response:', JSON.stringify(response, null, 2));
-
-            if (!response.data) {
+            if (otherContactsResult.status >= 200 && otherContactsResult.status < 300 && otherContactsResult.data) {
+                const result = otherContactsResult.data as OtherContactSearchResponse;
                 return {
-                    success: false,
-                    error: 'No data returned from People API',
-                    details: 'The search may not have been executed successfully'
-                };
+                    success: true,
+                    data: result,
+                }
             }
 
-            const people: Person[] = response.data.results?.map((result: any) => ({
-                resourceName: result.person?.resourceName,
-                names: result.person?.names,
-                emailAddresses: result.person?.emailAddresses,
-                phoneNumbers: result.person?.phoneNumbers,
-                organizations: result.person?.organizations
-            })) || [];
-
-            return {
-                success: true,
-                people,
-                nextPageToken: response.data.nextPageToken,
-                totalPeople: response.data.totalPeople || people.length,
-                details: `Found ${people.length} contacts matching "${query}"`
-            };
-
-        } catch (error: any) {
-            // console.error('Error searching people:', error);
-            console.log(error.message);
-            console.log(error.name);
-            console.log(error.code);
-            console.log(error.response?.status);
-            console.log(error.response?.data);
             return {
                 success: false,
-                error: error.message || 'Failed to search people',
-                details: error.response?.data?.error?.message || 'Unknown error occurred while searching contacts'
+                error: `Failed to search contacts: ${otherContactsResult.statusText || 'Unknown error'}`,
+            }
+        } catch (error: any) {
+            console.error('❌ Error searching people:', error);
+            console.error('❌ Error details:', {
+                message: error.message,
+                name: error.name,
+                code: error.code,
+                status: error.response?.status,
+                data: error.response?.data
+            });
+
+            if (error.response?.status === 403) {
+                const errorMessage = error.response?.data?.error?.message || '';
+                if (errorMessage.includes('contacts') || errorMessage.includes('people')) {
+                    return {
+                        success: false,
+                        error: 'You need to re-authorize with contacts permissions. Please visit the authorization URL again to grant access to your Google contacts.',
+                    };
+                }
+            }
+
+            return {
+                success: false,
+                error: error.message || 'Unknown error occurred while searching contacts',
             };
         }
     }

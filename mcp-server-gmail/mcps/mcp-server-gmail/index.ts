@@ -130,7 +130,7 @@ export default function createMcpServer(): McpServer {
 
   server.tool(
     "gmail_search_people",
-    "Search for people/contacts in Gmail using Google People API with support for names, emails, and phone numbers",
+    "Search for people/contacts in Gmail using Google People API with support for names, emails, and phone numbers. Requires contacts permission scope.",
     {
       query: z.string().describe("Search query to find people (matches names, emails, phone numbers, organizations)"),
       pageSize: z.number().optional().describe("Number of results to return (default: 10, max: 30)"),
@@ -194,19 +194,13 @@ export default function createMcpServer(): McpServer {
       const result = await gmailService.searchPeople(searchRequest);
 
       if (result.success) {
-        const peopleText = result.people?.map(person => {
-          const name = person.names?.[0]?.displayName || 'No name';
-          const email = person.emailAddresses?.[0]?.value || 'No email';
-          const phone = person.phoneNumbers?.[0]?.value || 'No phone';
-          const org = person.organizations?.[0]?.name || 'No organization';
-          return `• ${name} - ${email} - ${phone} - ${org}`;
-        }).join('\n') || 'No contacts found';
+        const text = result.data ? JSON.stringify(result.data, null, 2) : JSON.stringify({ results: [] }, null, 2);
 
         return {
           content: [
             {
               type: 'text',
-              text: `People search completed successfully!\n\nQuery: "${query}"\nResults: ${result.totalPeople || 0} people found\n\n${peopleText}`,
+              text,
             },
           ],
         };
@@ -215,7 +209,7 @@ export default function createMcpServer(): McpServer {
           content: [
             {
               type: 'text',
-              text: `Failed to search people: ${result.error}. Details: ${result.details || 'No additional details'}`,
+              text: `Failed to search people: ${result.error}.`,
             },
           ],
         };

@@ -54,18 +54,47 @@ export interface AuthTokenResponse {
 }
 
 // People Search Types
+export interface PersonMetadata {
+  sources?: PersonSource[];
+  objectType?: string;
+}
+
+export interface PersonSource {
+  type?: string;
+  id?: string;
+  etag?: string;
+  updateTime?: string;
+}
+
+export interface PersonNameMetadata {
+  primary?: boolean;
+  source?: PersonSource;
+  sourcePrimary?: boolean;
+}
+
 export interface PersonName {
+  metadata?: PersonNameMetadata;
   displayName?: string;
   givenName?: string;
   familyName?: string;
+  displayNameLastFirst?: string;
+  unstructuredName?: string;
+}
+
+export interface PersonEmailMetadata {
+  primary?: boolean;
+  source?: PersonSource;
+  sourcePrimary?: boolean;
 }
 
 export interface PersonEmailAddress {
+  metadata?: PersonEmailMetadata;
   value?: string;
   type?: string;
 }
 
 export interface PersonPhoneNumber {
+  metadata?: PersonNameMetadata;
   value?: string;
   type?: string;
 }
@@ -77,10 +106,20 @@ export interface PersonOrganization {
 
 export interface Person {
   resourceName?: string;
+  etag?: string;
+  metadata?: PersonMetadata;
   names?: PersonName[];
   emailAddresses?: PersonEmailAddress[];
   phoneNumbers?: PersonPhoneNumber[];
   organizations?: PersonOrganization[];
+}
+
+export interface OtherContactSearchResult {
+  person?: Person;
+}
+
+export interface OtherContactSearchResponse {
+  results?: OtherContactSearchResult[];
 }
 
 export interface SearchPeopleRequest {
@@ -90,11 +129,6 @@ export interface SearchPeopleRequest {
   userId: string;
 }
 
-export interface SearchPeopleResponse {
-  success: boolean;
-  people?: Person[];
-  nextPageToken?: string;
-  totalPeople?: number;
-  error?: string;
-  details?: string;
-}
+export type SearchPeopleResponse<T> =
+  | { success: true;  data: T;       error?: null }
+  | { success: false; data?: undefined; error: string };
