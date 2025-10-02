@@ -79,7 +79,7 @@ export default function createMcpServer(): McpServer {
 
       const gmailService = new GmailService({
         accessToken: authResult.accessToken,
-        userId,
+        // userId,
       });
 
       const isConnected = await gmailService.validateConnection();
@@ -169,7 +169,6 @@ export default function createMcpServer(): McpServer {
 
       const gmailService = new GmailService({
         accessToken: authResult.accessToken,
-        userId,
       });
 
       const isConnected = await gmailService.validateConnection();
@@ -188,7 +187,6 @@ export default function createMcpServer(): McpServer {
         query,
         pageSize,
         readMask,
-        userId,
       };
 
       const result = await gmailService.searchPeople(searchRequest);

@@ -24,7 +24,7 @@ export interface EmailResponse {
 
 export interface GmailConfig {
   accessToken: string;
-  userId: string;
+  // userId: string;
 }
 
 export interface SendEmailToolArgs {
@@ -126,7 +126,7 @@ export interface SearchPeopleRequest {
   query: string;
   pageSize?: number;
   readMask?: string;
-  userId: string;
+  // userId: string;
 }
 
 export type SearchPeopleResponse<T> =
