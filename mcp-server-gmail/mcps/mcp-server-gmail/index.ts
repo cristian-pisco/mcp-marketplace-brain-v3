@@ -48,6 +48,7 @@ export default function createMcpServer(): McpServer {
       userId: z.string().describe("User ID for authentication"),
     },
     async ({ to, subject, body, html, cc, bcc, userId }, extra) => {
+      console.log("======== GMAIL SEND EMAIL");
       const headers = extra?.requestInfo?.headers ?? {};
       console.log(JSON.stringify({ to, subject, body, html, cc, bcc, userId }, null, 2));
       console.log(JSON.stringify(headers, null, 2));
@@ -138,6 +139,7 @@ export default function createMcpServer(): McpServer {
       userId: z.string().describe("User ID for authentication"),
     },
     async ({ query, pageSize, readMask, userId }, extra) => {
+      console.log("======== GMAIL SEARCH PEOPLE");
       const headers = extra?.requestInfo?.headers ?? {};
       console.log(JSON.stringify({ query, pageSize, readMask, userId }, null, 2));
       console.log(JSON.stringify(headers, null, 2));
@@ -193,7 +195,9 @@ export default function createMcpServer(): McpServer {
 
       if (result.success) {
         const text = result.data ? JSON.stringify(result.data, null, 2) : JSON.stringify({ results: [] }, null, 2);
-
+        console.log('======== GMAIL SEARCH PEOPLE RESULT');
+        console.log(text);
+        console.log('======== END GMAIL SEARCH PEOPLE RESULT');
         return {
           content: [
             {
