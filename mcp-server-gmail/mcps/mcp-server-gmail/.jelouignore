@@ -1,6 +1,0 @@
-# Patterns listed here are ignored by jelou mcp:deploy
-node_modules/
-dist/
-*.log
-*.lock
-deno.json
